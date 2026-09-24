@@ -1,0 +1,334 @@
+---
+title: "A549_project"
+author: "Eylul"
+date: "2026-09-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+if(!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install(c("SummarizedExperiment", "GEOquery", "Biobase", "readr"))
+library(SummarizedExperiment)
+library(GEOquery)
+library(Biobase)
+library(readr)
+```
+
+# Introduction
+
+A549 human alveolar basal epithelial cells are widely used as an in vitro model for respiratory epithelium studies, drug testing, and transcriptomic analyses. Short-chain fatty acids (SCFAs), such as propionate, are primary fermentation products of dietary fiber produced by gut microbiota. Beyond their well-known matabolic roles, SCFAs act as signaling molecules that influence host cellular processes, including gene expression, inflammation, and cellular metabolism.
+
+Accumulating evidence suggests that circulating SCFAs can impact extra-intestinal organs, including the lungs, modulating immune and inflammatory pathways. Understanding the genome-wide transcriptional responses of A549 cells to propionate treatment provides critical insights into the molecular mechanisms underlying these cellular effects.
+
+This study utilizes the publicly available transcriptomic dataset GSE224740, consisting of A549 cells treated with propionate versus control groups (3 biological replicates per condition). The primary objective of this workflow is to:
+-Important and quality-control raw count matrices using a SummarizedExperiment framework,
+
+-Perform differential expression analysis using the DESeq2 pipeline to identify significantly upregulated and downregulated genes,
+
+-Conduct functional pathway enrichment analysis via fgsa utilizing the MSigDB Hallmark collection to elucidate the biological pathways modulated by propionate treatment.
+
+```{r}
+library(SummarizedExperiment)
+
+counts_file <- "GSE224740_Raw_Count_Table_1.txt"
+raw_counts <- read.delim(counts_file, header = TRUE, row.names = 1, check.names = FALSE)
+
+selected_samples <- c("Control_3D_R1", "Control_3D_R2", "Control_3D_R3",
+                      "SP_3D_R1", "SP_3D_R2", "SP_3D_R3")
+
+counts_matrix <- raw_counts[, selected_samples]
+
+sample_info <- data.frame(
+  row.names = selected_samples,
+  SampleId = selected_samples,
+  Treatment = c(rep("Control", 3), rep("Propionate", 3)),
+  TimePoint = rep("3 days", 6),
+  Replicate = c("rep1", "rep2", "rep3", "rep1", "rep2", "rep3")
+)
+
+row_data <- data.frame(GeneID = rownames(counts_matrix), row.names = rownames(counts_matrix))
+
+experiment_meta <- list(
+  dataset_accession = "GSE224740",
+  source = "Ramesh et al. (2023), PMC10701619",
+  description = "A549 lung cancer cells treated with sodium propionate for three dazs versus three-day control."
+)
+
+se <- SummarizedExperiment(
+  assays = list(counts = as.matrix(counts_matrix)),
+  colData = sample_info,
+  rowData = row_data,
+  metadata = experiment_meta
+)
+
+message("Dimensions of SummarizedExperiment (Genes x Samples):")
+print(dim(se))
+
+cat("Are there any missing values (NA)?:", any(is.na(assay(se, "counts"))), "\n")
+cat("Are all counts non-negative integers?:", all(assay(se, "counts") >= 0), "\n")
+
+saveRDS(se, file = "A549_SummarizedExperiment.rds")
+message('SummarizedExperiment successfully saved as "A549_SummarizedExperiment.rds"!')
+
+```
+
+
+
+```{r}
+library(DESeq2)
+
+se <- readRDS("A549_SummarizedExperiment.rds")
+
+se
+
+```
+```{r}
+
+sample_data <- data.frame(
+  SampleId = c("Control_3D_R1", "Control_3D_R2", "Control_3D_R3",
+               "SP_3D_R1", "SP_3D_R2", "SP_3D_R3"),
+  Treatment = factor(c("Control", "Control", "Control",
+                "Propionate", "Propionate", "Propionate")),
+  TimePoint = rep("3 days", 6),
+  Replicate = c("rep1", "rep2", "rep3", "rep1", "rep2", "rep3")
+)
+  
+  rownames(sample_data) <- sample_data$SampleId
+  
+
+dds <- DESeqDataSetFromMatrix(
+  countData = assay(se, "counts"),
+  colData = colData(se),
+  design = ~ Treatment
+)
+
+keep <- rowSums(counts(dds) >= 10) >= 3
+dds <- dds[keep, ]
+
+nrow(dds)
+```
+
+# Methods
+
+# Dataset and Preprocessing 
+The transcriptomic dataset GSE224740 comprising A549 cell lines treated with propionate versus control groups (n = 3 per condition) was obtained and analyzed using RStudio. Raw count data and sample metadata were integrated into a SummarizedExperiment container to ensure rigorous data structure management.
+
+To minimize technical noise and remove uninformative features, low-count filtering was applied. Genes with fewer than 10 counts in at least 3 samples were excluded from downstream analyses, retaining 17,450 genes for evaluation.
+
+# Differential Expression Analysis
+Differential expression analysis was performed using the DESeq2 package. A negative binomial generalized liner model was fitted using the design formula ~ Treatment. Variance-stabilizing transformation(vst) was applied to the count data for quality control and explaratory visualization, including Principal Component Analysis(PCA) and MA plotting.
+
+P-values were adjusted for multiple testing using the Benjamini-Hochberg false discovery rate(FDR) procedure. Genes with an adjusted p-value(padj) of less than 0.05 were considered statistically significant. Upregulated and downregulated genes were identified based on their positive and negative log2 fold change values, respectively.
+
+```{r, fig.width=7, fig.height=5}
+library(ggplot2)
+
+plotPCA(vsd, intgroup = c("Treatment")) +
+  theme_bw(base_size = 12) +
+  geom_point(size = 4) +
+  ggtitle("PCA Plot - Control vs Propionate")
+```
+```{r}
+dds <- DESeq(dds)
+
+res <- results(dds, contrast=c("Treatment", "Propionate", "Control"))
+
+summary(res)
+```
+```{r}
+res_05 <- results(dds, contrast=c("Treatment", "Propionate", "Control"), alpha = 0.05)
+summary(res_05)
+
+plotMA(res_05, main="MA Plot: Propionate vs Control", ylim=c(-5, 5))
+
+write.csv(as.data.frame(res_05), file = "A549_Propionate_vs_Control_results.csv")
+```
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install("fgsea")
+
+install.packages(c("msigdbr", "dplyr", "tibble", "ggplot2"))
+```
+
+```{r}
+library(fgsea)
+library(msigdbr)
+library(dplyr)
+library(tibble)
+
+m_df <- msigdbr(species = "Homo sapiens", collection = "H")
+pathways <- split(m_df$gene_symbol, m_df$gs_name)
+```
+
+```{r}
+res_df <- as.data.frame(res_05) %>%
+  rownames_to_column("gene_symbol") %>%
+  filter(!is.na(stat))
+
+res_ranked <- res_df %>%
+  group_by(gene_symbol) %>%
+  summarise(stat = mean(stat)) %>%
+  arrange(desc(stat))
+
+ranks <- deframe(res_ranked)
+```
+
+```{r}
+library(dplyr)
+
+set.seed(42)
+fgseaRes <- fgsea(pathways = pathways,
+                  stats = ranks,
+                  minSize = 15,
+                  maxSize = 500)
+
+fgseaResTidy <- fgseaRes %>%
+  as.data.frame() %>%
+  arrange(padj)
+
+write.csv(fgseaResTidy, file = "A549_fgsea_hallmark_results.csv")
+```
+```{r}
+print(paste("Total number of pathways:", nrow(fgseaResTidy)))
+print(head(fgseaResTidy[, c("pathway", "NES", "padj")]))
+```
+
+```{r}
+print("--- RANKS (DESeq2 Genes) ---")
+print(head(names(ranks), 10))
+
+print("--- PATHWAYS (MSigDB Genes) ---")
+print(head(pathways[[1]], 10))
+```
+
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install(c("AnnotationDbi", "org.Hs.eg.db"))
+```
+
+```{r}
+library(AnnotationDbi)
+library(org.Hs.eg.db)
+library(dplyr)
+library(tibble)
+library(fgsea)
+
+res_df$gene_symbol <- mapIds(org.Hs.eg.db,
+                             keys = gsub("\\..*", "", res_df$gene_symbol),
+                             column = "SYMBOL",
+                             keytype = "ENSEMBL",
+                             multiVals = "first")
+
+res_ranked <- res_df %>%
+  filter(!is.na(gene_symbol) & !is.na(stat)) %>%
+  group_by(gene_symbol) %>%
+  summarise(stat = mean(stat)) %>%
+  arrange(desc(stat))
+
+ranks <- deframe(res_ranked)
+
+set.seed(42)
+fgseaRes <- fgsea(pathways = pathways,
+                  stats = ranks,
+                  minSize = 15,
+                  maxSize = 500)
+
+fgseaResTidy <- fgseaRes %>%
+  as.data.frame() %>%
+  arrange(padj)
+
+print(paste("Total number of pathways:", nrow(fgseaResTidy)))
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+plot_data <- fgseaResTidy %>%
+  filter(!is.na(padj)) %>%
+  slice_head(n = 15)
+
+
+p <- ggplot(plot_data, aes(reorder(pathway, NES), NES, fill = padj < 0.05)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = c("TRUE" = "firebrick", "FALSE" = "grey")) +
+  labs(title = "FGSEA - Hallmark Pathways (Propionate vs Control",
+       x = "Pathways",
+       y = "Normalized Enrichment Score (NES)",
+       fill = "Significant (padj < 0.05") +
+  theme_minimal(base_size = 11)
+
+ggsave(filename = "A549_hallmark_Pathways.png", plot = p, width = 8, height = 6, dpi = 300)
+
+print(p)
+```
+
+```{r}
+library(pheatmap)
+library(DESeq2)
+library(dplyr)
+library(AnnotationDbi)
+library(org.Hs.eg.db)
+
+vsd_symbol <- vsd
+rownames(vsd_symbol) <- mapIds(org.Hs.eg.db,
+                               keys = gsub("\\..*", "", rownames(vsd)),
+                               column = "SYMBOL",
+                               keytype = "ENSEMBL",
+                               multiVals = "first")
+
+target_pathway <- "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION"
+lead_genes <- fgseaResTidy %>%
+  filter(pathway == target_pathway) %>%
+  pull(leadingEdge) %>%
+  unlist()
+
+selected_genes <- head(lead_genes, 15)
+common_genes <- intersect(selected_genes, rownames(vsd_symbol))
+mat <- assay(vsd_symbol)[common_genes, ]
+mat <- mat[complete.cases(mat), ]
+
+pheatmap(mat,
+         scale = "row",
+         show_rownames = TRUE,
+         show_colnames = TRUE,
+         cluster_cols = FALSE,
+         main = "Leading-Edge Genes Heatmap: EMT Pathway",
+         fontsize_row = 10)
+```
+## RESULTS
+1.Sample Clustering and Exploratory Data Analysis(PCA & MA Plot)
+To evaluate plobal transcriptomic variations and sample-to-sample reproducibility between the control and propionate-treated A549 cell lines, Principal Component Analysis(PCA) and MA plotting were peformed. The PCA plot demonstrates clear clustering and separation between thw biological replicates of the control group and the propionate-treated group along Principal Component 1(PC1, capturing 99% of the variance), indicating a robust and consistent transcriptional response to the treatment. Furthermore, the MA plot illustrates the overall distribution of log2 fold changes across mean expression levels, highlighting globally balanced differential expression patterns without technical artifacts.
+
+2.Differential Expression Analysis(DESeq2)
+Differential gene expression analysis using DESeq2 identified substantial transcriptomic alterations upon propionate treatment. Out of 17,450 genes with non-zero total read counts, a large subset of genes exhibited statistically significant differential expression(adjusted p-value < 0, n = 5,072), while another 27% showed significant downregulation (LFC < 0, n = 4,758).
+
+3.Hallmark Pathway Enrichment Analysis(FGSEA)
+To move beyond individual genes and interpret coordinated biological processes, Fast Gene Set Enrichment Analysis(FGSEA) was conducted using the MSigDB Hallmark collection. The analysis successfully evaluated 50 distinct pathways. The summary bar plot of the top enriched pathways reveals significant normalization enrichment scores(NES).
+Pathways such as Apical Junction, Epithelial Mesenchymal Transition(EMT), and Apical Surface demonstrated significant positive enrichment(upregulation) under propionate treatment (padj < 0.05). Conversely, key proliferative and cell-cycle regulatory pathways, including E2F Targets and G2M Checkpoint, showed significant negative enrichment (downregulation).
+
+4.Leading-Edge Gene Expression Visualization(EMT Heatmap)
+To investigate the transcriptional dynamics driving the Hallmark pathway results in detail, a hierarchical clustering heatmap was generated for the leading-edge genes contributing to the Epithelial-Mesenchymal Transition (EMT) pathway. The resulting heatmap displays z-score scaled expression values across individual control and propionate-treated samples (Control_3D vs. SP_3D) for 15 core leading-edge genes(such as COL1A1, SPARC, TGFBI, and JUN). The samples cluster cleanly by treatment group, and the leading-edge genes exhibit a distinct coordinated upregulation pattern (marked by higher expression levels in red) in all propionate-treated replicates compared to the controls.
+
+
+## Discussion and Biological Interpretation
+1.Consistency Between Individual Genes and Pathway Results
+The integration of DESeq2 differential expression results and FGSEA Hallmark pathway analysis demonstrates a strong, coherent biological signal. While individual genes may exhibit high biological variability or modest fold changes, the gene-set enrichment approach captures coordinated shifts across entire biological programs. Specifically, the significant enrichment of pathways such as EMT and Apical Junction indicates that propionate treatment systematically reprograms structural and migratory transcriptional networks in A549 cells, moving beyond isolated gene alterations to coordinated cellular phenotype modulation.
+
+2.Evidence of Epithelial Identity and EMT Signature
+The heatmap focusing on the leading-edge genes of the EMT pathway (COL1A1, SPARC, TGFBI, JUN,etc.) reveals a pronounced upregulation in propionate-treated samples compared to controls. this concerted upregulation of extracellular matrix components and mesenchymal markers supports the hypothesis of an altered epithelial identity. However, as outlined in the project guidlines, RNA-seq enrichment alone reflects transcriptomic signatures and pathway activity, which must be carefully distinguished from direct functional validation of cellular invasion or metastasis.
+
+3.Comparison with Published Findings
+These findings align with broader literature investigating the metabolic and epigenetic impacts of short-chain fatty acids(like propionate) on cancer cell lines. The activation of stress response and structural remodeling pathways reflects the compund's capacity to alter cellular behavior. Any divergences from published studies can typically be attributed to differences in treatment duration, dosage, culture conditions(such as 3D vs. 2D cultures), or baseline sequencing depths.
+
+4.Limitations of the Study
+Crucially, interpreting these findings requires acknowleding the experimental constraints. Because this dataset(GSE224740) relies on a single cancer cell line (A549) with a limited sample size (n = 3 per group), broad generalizations regarding in vivo tumor dynamics, patient prognosis, or universal drug responses cannot be made. Transcriptomic enrichment provides powerful exploratory hypotheses, but downstream functional assays(e.g., wound-healing or invasuon assays) and validation across diverse physiological models are essential before drawing definitive conclusions.
