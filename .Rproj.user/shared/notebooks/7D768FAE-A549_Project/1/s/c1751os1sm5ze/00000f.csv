@@ -1,0 +1,128 @@
+"0","if (!requireNamespace(""BiocManager"", quietly = TRUE))"
+"0","  install.packages(""BiocManager"")"
+"0",""
+"0","BiocManager::install(""fgsea"")"
+"2","'getOption(""repos"")' replaces Bioconductor standard repositories, see 'help(""repositories"", package =
+""BiocManager"")' for details.
+Replacement repositories:
+    CRAN: https://cran.rstudio.com/
+"
+"2","Bioconductor version 3.20 (BiocManager 1.30.27), R 4.4.1 (2024-06-14)
+"
+"2","Installing package(s) 'fgsea'
+"
+"2","Warning: downloaded length 0 != reported length 250"
+"2","Warning: cannot open URL 'https://mghp.osn.xsede.org/bir190004-bucket01/archive.bioconductor.org/packages/3.20/data/annotation/bin/macosx/big-sur-x86_64/contrib/4.4/PACKAGES.rds': HTTP status was '404 Not Found'"
+"2","Warning: downloaded length 0 != reported length 250"
+"2","Warning: cannot open URL 'https://mghp.osn.xsede.org/bir190004-bucket01/archive.bioconductor.org/packages/3.20/data/annotation/bin/macosx/big-sur-x86_64/contrib/4.4/PACKAGES.gz': HTTP status was '404 Not Found'"
+"2","Warning: downloaded length 0 != reported length 250"
+"2","Warning: cannot open URL 'https://mghp.osn.xsede.org/bir190004-bucket01/archive.bioconductor.org/packages/3.20/data/experiment/bin/macosx/big-sur-x86_64/contrib/4.4/PACKAGES.rds': HTTP status was '404 Not Found'"
+"2","Warning: downloaded length 0 != reported length 250"
+"2","Warning: cannot open URL 'https://mghp.osn.xsede.org/bir190004-bucket01/archive.bioconductor.org/packages/3.20/data/experiment/bin/macosx/big-sur-x86_64/contrib/4.4/PACKAGES.gz': HTTP status was '404 Not Found'"
+"2","Warning: downloaded length 0 != reported length 250"
+"2","Warning: cannot open URL 'https://mghp.osn.xsede.org/bir190004-bucket01/archive.bioconductor.org/packages/3.20/workflows/bin/macosx/big-sur-x86_64/contrib/4.4/PACKAGES.rds': HTTP status was '404 Not Found'"
+"2","Warning: downloaded length 0 != reported length 250"
+"2","Warning: cannot open URL 'https://mghp.osn.xsede.org/bir190004-bucket01/archive.bioconductor.org/packages/3.20/workflows/bin/macosx/big-sur-x86_64/contrib/4.4/PACKAGES.gz': HTTP status was '404 Not Found'"
+"2","Warning: downloaded length 0 != reported length 11685"
+"2","Warning: cannot open URL 'https://bioconductor.org/packages/3.20/books/bin/macosx/big-sur-x86_64/contrib/4.4/PACKAGES.rds': HTTP status was '404 Not Found'"
+"2","Warning: downloaded length 0 != reported length 11685"
+"2","Warning: cannot open URL 'https://bioconductor.org/packages/3.20/books/bin/macosx/big-sur-x86_64/contrib/4.4/PACKAGES.gz': HTTP status was '404 Not Found'"
+"2","trying URL 'https://bioconductor.org/packages/3.20/bioc/bin/macosx/big-sur-x86_64/contrib/4.4/fgsea_1.32.0.tgz'
+"
+"2","Content type 'application/x-compressed-tar'"
+"2"," length 5687206 bytes (5.4 MB)
+"
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","
+"
+"2","downloaded 5.4 MB
+
+"
+"1","
+"
+"1",""
+"1","The downloaded binary packages are in
+	/var/folders/k4/kv3j28nj7891l8v0mkd6563m0000gr/T//RtmpKGKBjy/downloaded_packages"
+"1",""
+"1","
+"
+"2","Installation paths not writeable, unable to update packages
+  path: /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/library
+  packages:
+    backports, base64enc, bit64, blob, boot, broom, bslib, callr, checkmate, class, cli, clipr, cluster,
+    colorspace, commonmark, cpp11, data.table, DBI, dbplyr, digest, dplyr, dtplyr, ellipsis, evaluate, fansi,
+    fontawesome, forcats, foreign, fs, gargle, generics, ggplot2, glue, googledrive, googlesheets4, gtable,
+    haven, hdf5r, highr, hms, htmltools, httpuv, httr, isoband, jsonlite, KernSmooth, knitr, later, lattice,
+    learnr, lifecycle, litedown, lubridate, magrittr, MASS, Matrix, mgcv, mime, nlme, nnet, openssl, pillar,
+    processx, promises, ps, purrr, R6, ragg, rappdirs, Rcpp, readr, readxl, reshape2, rlang, rmarkdown, rpart,
+    rprojroot, rstudioapi, rvest, sass, scales, selectr, shiny, sourcetools, spatial, stringi, stringr,
+    survival, systemfonts, textshaping, tibble, tidyr, timechange, tinytex, utf8, uuid, vctrs, viridisLite,
+    vroom, withr, xfun, xml2, xtable, yaml
+"
+"2","Old packages: 'bitops', 'curl', 'fgsea', 'Formula', 'gert', 'ggsci', 'ggtext', 'msigdbr', 'pbapply', 'RANN',
+  'RcppArmadillo', 'renv', 'reticulate', 'rstatix', 'spatstat.explore', 'spatstat.geom', 'spatstat.random',
+  'spatstat.utils', 'usethis', 'uwot', 'XML', 'zip', 'zoo'
+"
+"1","Update all/some/none? [a/s/n]: "
+"0","n"
+"0",""
+"0","install.packages(c(""msigdbr"", ""dplyr"", ""tibble"", ""ggplot2""))"
+"1","Error in "
+"1",""
+"1","install.packages"
+"1",""
+"1"," : "
+"1",""
+"1","Updating loaded packages"
+"1",""
+"1","
+"

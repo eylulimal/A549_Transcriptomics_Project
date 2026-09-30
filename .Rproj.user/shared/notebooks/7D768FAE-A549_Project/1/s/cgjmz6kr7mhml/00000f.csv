@@ -1,0 +1,8 @@
+"0","library(ggplot2)"
+"0",""
+"0","vsd <- vst(dds, blind = FALSE)"
+"0",""
+"0","plotPCA(vsd, intgroup = c(""Treatment"")) +"
+"0","  theme_bw(base_size = 12) +"
+"0","  geom_point(size = 4) +"
+"0","  ggtitle(""PCA Plot - Control vs Propionate"")"

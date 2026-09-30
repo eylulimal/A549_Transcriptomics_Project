@@ -1,0 +1,6 @@
+"0","print(paste(""Total number of pathways:"", nrow(fgseaResTidy)))"
+"1","[1]"
+"1"," ""Total number of pathways: 0"""
+"1","
+"
+"0","print(head(fgseaResTidy[, c(""pathway"", ""NES"", ""padj"")]))"

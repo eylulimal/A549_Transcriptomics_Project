@@ -1,0 +1,7 @@
+"0","library(fgsea)"
+"0","library(msigdbr)"
+"0","library(dplyr)"
+"0","library(tibble)"
+"0",""
+"0","m_df <- msigdbr(species = ""Homo sapiens"", collection = ""H"")"
+"0","pathways <- split(m_df$gene_symbol, m_df$gs_name)"

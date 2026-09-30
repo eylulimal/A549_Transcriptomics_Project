@@ -1,0 +1,13 @@
+# A549 Transcriptomics Project (GSE224740)
+
+This repository contains the complete RNA-seq analysis pipeline invastigating the effects of propionate treatmenton A549
+human alveolar basal epithelial cells.
+
+## Requirements & Environment Setup
+This project uses **"renv"** for reproducible package management to ensure that all required package versions are 
+consistent.
+
+To restore the exact required package versions, open your R session in the project directory and run:
+
+```R
+renv::restore()

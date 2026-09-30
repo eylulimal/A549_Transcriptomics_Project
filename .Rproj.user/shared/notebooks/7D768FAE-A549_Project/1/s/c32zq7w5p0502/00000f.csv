@@ -1,0 +1,25 @@
+"0","res_05 <- results(dds, contrast=c(""Treatment"", ""Propionate"", ""Control""), alpha = 0.05)"
+"0","summary(res_05)"
+"1","
+"
+"1","out of 17450 with nonzero total read count
+"
+"1","adjusted p-value < 0.05
+"
+"1","LFC > 0 (up)       : 4655, 27%
+"
+"1","LFC < 0 (down)     : 4251, 24%
+"
+"1","outliers [1]       : 0, 0%
+"
+"1","low counts [2]     : 0, 0%
+"
+"1","(mean count < 5)
+"
+"1","[1] see 'cooksCutoff' argument of ?results
+"
+"1","[2] see 'independentFiltering' argument of ?results
+"
+"1","
+"
+"0","plotMA(res_05, main=""MA Plot: Propionate vs Control"", ylim=c(-5, 5))"

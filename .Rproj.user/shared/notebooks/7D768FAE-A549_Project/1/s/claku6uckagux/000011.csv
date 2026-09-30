@@ -1,0 +1,2 @@
+"0",""
+"0","write.csv(as.data.frame(res_05), file = ""A549_Propionate_vs_Control_results.csv"")"
